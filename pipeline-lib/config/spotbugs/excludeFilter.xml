@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress EI warnings for DTO model classes -->
+  <Match>
+    <Package name="edu.northeastern.cs7580.cicd.pipeline.model" />
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+  </Match>
+
+  <!-- Suppress EI warnings for internal classes (internal use only) -->
+  <Match>
+    <Package name="~edu\.northeastern\.cs7580\.cicd\.pipelinelib\.internal\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+  </Match>
+
+  <!-- Suppress EI warnings for Lombok-generated builders -->
+  <Match>
+    <Class name="~.*\$.*Builder" />
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <!-- Lombok redundant null checks -->
+  <Match>
+    <Package name="edu.northeastern.cs7580.cicd.pipelinelib.model"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+  </Match>
+
+
+</FindBugsFilter>

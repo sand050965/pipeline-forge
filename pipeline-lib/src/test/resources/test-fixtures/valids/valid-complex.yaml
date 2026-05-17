@@ -1,0 +1,43 @@
+pipeline:
+  name: valid-complex
+  description: Complex pipeline with multiple stages and jobs
+
+stages:
+  - build
+  - test
+  - analyze
+  - package
+
+compile:
+  - stage: build
+  - image: gradle:jdk21-corretto
+  - script: gradle build -x test
+
+unit-tests:
+  - stage: test
+  - image: gradle:jdk21-corretto
+  - script:
+      - gradle test
+      - gradle jacocoTestReport
+
+integration-tests:
+  - stage: test
+  - image: gradle:jdk21-corretto
+  - script: gradle integrationTest
+  - needs: [ unit-tests ]
+
+checkstyle:
+  - stage: analyze
+  - image: gradle:jdk21-corretto
+  - script: gradle checkstyleMain
+
+spotbugs:
+  - stage: analyze
+  - image: gradle:jdk21-corretto
+  - script: gradle spotbugsMain
+  - needs: [ checkstyle ]
+
+package-jar:
+  - stage: package
+  - image: gradle:jdk21-corretto
+  - script: gradle bootJar

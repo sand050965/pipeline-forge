@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: execution-service
+  labels:
+    app: execution-service
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: execution-service
+  template:
+    metadata:
+      labels:
+        app: execution-service
+    spec:
+      securityContext:
+        supplementalGroups: [997]  # docker group GID on the minikube node
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for postgres:5432...";
+              until nc -z postgres 5432; do
+                sleep 2;
+              done
+        - name: wait-for-rabbitmq
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for rabbitmq:5672...";
+              until nc -z rabbitmq 5672; do
+                sleep 2;
+              done
+      containers:
+        - name: execution-service
+          image: {{ .Values.image.repository }}/execution-service:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: cicd-config
+            - secretRef:
+                name: cicd-db-credentials
+          resources:
+            {{- toYaml .Values.resources.stateless.executionService | nindent 12 }}
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: tmp
+          hostPath:
+            path: /tmp
+            type: Directory

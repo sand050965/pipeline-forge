@@ -1,0 +1,28 @@
+pipeline:
+  name: cycle-pipeline
+stages:
+  - build
+
+J1:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "J1"
+  - needs: [J2]
+
+J2:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "J2"
+  - needs: [J3]
+
+J3:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "J3"
+  - needs: [J4]
+
+J4:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "J4"
+  - needs: [J1]

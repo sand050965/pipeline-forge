@@ -1,0 +1,12 @@
+pipeline:
+  name: invalid-failures-wrong-type
+  description: Pipeline with failures set to a non-boolean value
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+  - failures: maybe

@@ -1,0 +1,39 @@
+pipeline:
+  name: demo-parallel-failure
+  description: Failure propagation demo - B fails, D is skipped, C still completes
+
+stages:
+  - build
+
+job-lint:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[lint] started"
+      - sleep 3
+      - echo "[lint] done"
+
+job-unit-test:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[unit-test] started"
+      - sleep 2
+      - echo "[unit-test] FAILED"
+      - exit 1
+
+job-security-scan:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[security-scan] started"
+      - sleep 3
+      - echo "[security-scan] done"
+
+# Depends on unit-test (which fails) → will be SKIPPED
+job-package:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[package] packaging..."
+  - needs: [job-unit-test]

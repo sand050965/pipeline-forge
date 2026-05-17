@@ -1,0 +1,11 @@
+pipeline:
+  name: default
+  description: Second pipeline with name default
+
+stages:
+  - test
+
+test-job:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "testing"

@@ -1,0 +1,17 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.grafana.service.type }}
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: {{ .Values.grafana.service.port }}
+      targetPort: 3000
+{{- end }}

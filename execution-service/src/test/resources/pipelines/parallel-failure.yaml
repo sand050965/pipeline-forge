@@ -1,0 +1,22 @@
+pipeline:
+  name: parallel-failure
+  description: B and C are independent; B fails; D needs B and should be skipped
+
+stages:
+  - build
+
+job-b:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-b"
+
+job-c:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-c"
+
+job-d:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-d"
+  - needs: [job-b]

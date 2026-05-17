@@ -1,0 +1,280 @@
+import com.github.spotbugs.snom.SpotBugsTask
+
+plugins {
+    id 'com.github.spotbugs' version '6.4.8' apply false
+    id 'jacoco'
+    id 'base'
+}
+
+allprojects {
+    group = 'edu.northeastern.cs7580'
+    version = '0.0.1-SNAPSHOT'
+    description = 'CI/CD System'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        modularity.inferModulePath = true
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += [
+                "-Xlint:-module",
+                "-Xlint:-unchecked"
+        ]
+    }
+
+    tasks.withType(Test).configureEach {
+        jvmArgs += "-Xshare:off"
+        jvmArgs += "-XX:+EnableDynamicAgentLoading"
+    }
+
+    // ===== Javadoc Configuration =====
+    javadoc {
+        options {
+            tags = [
+                    'apiNote:a:API Note:',
+                    'implSpec:a:Implementation Requirements:',
+                    'implNote:a:Implementation Note:'
+            ]
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+            addStringOption('Xdoclint:-missing', '-quiet')
+        }
+    }
+
+    // ===== Checkstyle Configuration =====
+    apply plugin: 'checkstyle'
+
+    checkstyle {
+        toolVersion = '13.0.0'
+        configFile = rootProject.file('config/checkstyle/google_checks.xml')
+        ignoreFailures = false
+    }
+
+    tasks.withType(Checkstyle).configureEach {
+        group = 'verification'
+    }
+
+    tasks.register('checkstyle') {
+        group = 'verification'
+        description = 'Runs Checkstyle on main and test sources'
+        dependsOn 'checkstyleMain', 'checkstyleTest'
+    }
+
+    // ===== SpotBugs Configuration =====
+    apply plugin: 'com.github.spotbugs'
+
+    spotbugs {
+        ignoreFailures = false
+        toolVersion = '4.9.8'
+    }
+
+    tasks.withType(SpotBugsTask).configureEach {
+        group = 'verification'
+    }
+
+    spotbugsMain {
+        reports {
+            html {
+                required = true
+                outputLocation = layout.buildDirectory.file('reports/spotbugs/main.html')
+            }
+            xml {
+                required = false
+            }
+        }
+    }
+
+    spotbugsTest {
+        reports {
+            html {
+                required = true
+                outputLocation = layout.buildDirectory.file('reports/spotbugs/test.html')
+            }
+            xml {
+                required = false
+            }
+        }
+    }
+
+    // Configure auxClassPaths after tasks are created
+    tasks.named('spotbugsMain', SpotBugsTask).configure {
+        auxClassPaths.setFrom(sourceSets.main.compileClasspath)
+    }
+
+    tasks.named('spotbugsTest', SpotBugsTask).configure {
+        auxClassPaths.setFrom(sourceSets.test.compileClasspath)
+    }
+
+    tasks.register('spotbugs') {
+        group = 'verification'
+        description = 'Runs SpotBugs on main and test sources'
+        dependsOn 'spotbugsMain', 'spotbugsTest'
+    }
+
+    // ===== JaCoCo Configuration =====
+    apply plugin: 'jacoco'
+
+    jacoco {
+        toolVersion = '0.8.11'
+    }
+
+    jacocoTestReport {
+        dependsOn test
+
+        executionData.setFrom(fileTree(layout.buildDirectory).include('jacoco/*.exec'))
+        classDirectories.setFrom(files(sourceSets.main.output))
+        sourceDirectories.setFrom(files(sourceSets.main.allSource.srcDirs))
+
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/**Application.class'
+                ])
+            }))
+        }
+
+        reports {
+            html.required.set(true)
+            xml.required.set(true)
+            csv.required.set(false)
+        }
+    }
+
+    jacocoTestCoverageVerification {
+        dependsOn jacocoTestReport
+
+        violationRules {
+            rule {
+                limit {
+                    counter = 'LINE'
+                    value = 'COVEREDRATIO'
+                    minimum = 0.70
+                }
+
+                limit {
+                    counter = 'BRANCH'
+                    value = 'COVEREDRATIO'
+                    minimum = 0.70
+                }
+            }
+        }
+    }
+
+    // ===== Test Configuration =====
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+
+        testLogging {
+            events = ['skipped', 'failed']
+            exceptionFormat = 'full'
+        }
+    }
+
+    tasks.register('verify') {
+        group = 'verification'
+        description = 'Runs all quality checks for this subproject'
+        dependsOn 'checkstyle', 'spotbugs', 'jacocoTestCoverageVerification'
+    }
+}
+
+// ===== Aggregate Tasks =====
+tasks.named('build') {
+    group = 'build'
+    description = 'Builds all subprojects'
+    dependsOn subprojects.collect { it.tasks.named('build') }
+}
+
+tasks.named('clean') {
+    group = 'build'
+    description = 'Cleans all subprojects'
+    dependsOn subprojects.collect { it.tasks.named('clean') }
+    doLast {
+        delete layout.buildDirectory.get().asFile
+    }
+}
+
+tasks.register('compile') {
+    group = 'build'
+    description = 'Compiles main and test sources for all subprojects'
+    dependsOn subprojects.collect { it.tasks.named('classes') }
+    dependsOn subprojects.collect { it.tasks.named('testClasses') }
+}
+
+tasks.register('javadoc') {
+    group = 'documentation'
+    description = 'Generates Javadoc for all subprojects'
+    dependsOn subprojects.collect { it.tasks.named('javadoc') }
+}
+
+tasks.register('test') {
+    group = 'verification'
+    description = 'Runs tests for all subprojects'
+    dependsOn subprojects.collect { it.tasks.named('test') }
+}
+
+tasks.register('checkstyle') {
+    group = 'verification'
+    description = 'Runs Checkstyle on all subprojects'
+    dependsOn subprojects.collect { it.tasks.matching { it.name.startsWith('checkstyle') } }
+}
+
+tasks.register('spotbugs') {
+    group = 'verification'
+    description = 'Runs SpotBugs on all subprojects'
+    dependsOn subprojects.collect { it.tasks.matching { it.name.startsWith('spotbugs') } }
+}
+
+tasks.register('jacocoTestReport', JacocoReport) {
+    group = 'verification'
+    description = 'Generates aggregate JaCoCo coverage report for all subprojects'
+
+    dependsOn 'test'
+
+    // Collect execution data from all subprojects
+    executionData.from = files(subprojects.collect {
+        fileTree(dir: "${it.layout.buildDirectory.get()}/jacoco", include: '**/*.exec')
+    })
+
+    // Collect source and class files from all subprojects
+    sourceDirectories.from = files(subprojects.collect { it.sourceSets.main.allSource.srcDirs })
+    classDirectories.from = files(subprojects.collect { project ->
+        project.sourceSets.main.output.classesDirs.collect { classDir ->
+            fileTree(dir: classDir, exclude: [
+                    '**/**Application.class'
+            ])
+        }
+    }.flatten())
+
+    reports {
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
+        xml.required = true
+        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacocoTestReport.xml')
+        csv.required = false
+    }
+}
+
+tasks.register('jacocoTestCoverageVerification') {
+    group = 'verification'
+    description = 'Verifies JaCoCo coverage thresholds for all subprojects'
+    dependsOn subprojects
+        .findAll { it.tasks.findByName('jacocoTestCoverageVerification') != null }
+        .collect { it.tasks.named('jacocoTestCoverageVerification') }
+}
+
+tasks.register('verify') {
+    group = 'verification'
+    description = 'Runs all quality checks on all subprojects (used by CI)'
+    dependsOn 'checkstyle', 'spotbugs', 'jacocoTestCoverageVerification'
+}

@@ -1,0 +1,12 @@
+pipeline:
+  name: valid-failures-true
+  description: Pipeline with failures set to true
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+  - failures: true

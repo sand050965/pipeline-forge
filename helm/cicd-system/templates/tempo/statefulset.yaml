@@ -1,0 +1,55 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tempo
+  labels:
+    app: tempo
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  serviceName: tempo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      containers:
+        - name: tempo
+          image: grafana/tempo:2.7.2
+          args: ["-config.file=/etc/tempo/tempo-config.yaml"]
+          ports:
+            - name: http
+              containerPort: 3200
+            - name: otlp-grpc
+              containerPort: 4317
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tempo
+            - name: tempo-storage
+              mountPath: /var/tempo
+          resources:
+            {{- toYaml .Values.resources.stateful.tempo | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3200
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3200
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: tempo-config
+        - name: tempo-storage
+          persistentVolumeClaim:
+            claimName: tempo-pvc
+{{- end }}

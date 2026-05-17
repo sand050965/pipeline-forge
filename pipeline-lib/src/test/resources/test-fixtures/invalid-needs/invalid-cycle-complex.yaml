@@ -1,0 +1,24 @@
+pipeline:
+  name: cycle-complex
+  description: Complex circular dependency (3 jobs)
+
+stages:
+  - test
+
+job1:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "job1"
+  - needs: [ job3 ]
+
+job2:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "job2"
+  - needs: [ job1 ]
+
+job3:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "job3"
+  - needs: [ job2 ]

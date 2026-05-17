@@ -1,0 +1,51 @@
+pipeline:
+  name: demo-parallel
+  description: Parallel execution demo - shows wave scheduling and failure propagation
+
+stages:
+  - build
+  - deploy
+
+# Wave 0: three independent jobs run concurrently
+job-lint:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[lint] started"
+      - sleep 4
+      - echo "[lint] done"
+
+job-unit-test:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[unit-test] started"
+      - sleep 4
+      - echo "[unit-test] done"
+
+job-security-scan:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[security-scan] started"
+      - sleep 4
+      - echo "[security-scan] done"
+
+# Wave 1: only runs after all three above complete
+job-package:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "[package] all checks passed, packaging..."
+      - sleep 2
+      - echo "[package] done"
+  - needs: [job-lint, job-unit-test, job-security-scan]
+
+# Deploy stage - sequential
+deploy-app:
+  - stage: deploy
+  - image: alpine:latest
+  - script:
+      - echo "[deploy] deploying..."
+      - sleep 1
+      - echo "[deploy] done"

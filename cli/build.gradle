@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+group = 'edu.northeastern.cs7580'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+tasks.register('installCli') {
+    dependsOn shadowJar
+    doLast {
+        def installDir = layout.buildDirectory.dir('install/cicd').get().asFile
+        installDir.mkdirs()
+        copy {
+            from shadowJar.archiveFile
+            into installDir
+            rename { 'cicd.jar' }
+        }
+        def script = new File(installDir, 'cicd')
+        script.text = '#!/bin/sh\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec java -jar "$DIR/cicd.jar" "$@"\n'
+        script.setExecutable(true)
+    }
+}
+
+dependencies {
+    implementation 'io.github.northeastern-cs7580-team-c:pipeline-lib:1.2.0'
+    testImplementation 'io.github.northeastern-cs7580-team-c:pipeline-lib:1.2.0'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.25'
+
+    implementation 'info.picocli:picocli:4.7.6'
+    annotationProcessor 'info.picocli:picocli-codegen:4.7.6'
+
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r'
+    testImplementation 'org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r'
+
+    implementation 'org.yaml:snakeyaml:2.3'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.mockito:mockito-core:5.21.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+shadowJar {
+    archiveBaseName.set('cicd')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    manifest {
+        attributes 'Main-Class': 'edu.northeastern.cs7580.cicd.cli.CicdCli'
+    }
+}

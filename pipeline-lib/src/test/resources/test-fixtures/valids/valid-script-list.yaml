@@ -1,0 +1,14 @@
+pipeline:
+  name: test-script-list
+  description: Pipeline with script as list
+
+stages:
+  - build
+
+compile:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "First command"
+      - echo "Second command"
+      - echo "Third command"

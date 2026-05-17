@@ -1,0 +1,24 @@
+pipeline:
+  name: cycle-one-stage
+  description: Cycle in one stage while other stage is valid
+
+stages:
+  - build
+  - test
+
+build1:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+
+test1:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "test1"
+  - needs: [ test2 ]
+
+test2:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "test2"
+  - needs: [ test1 ]

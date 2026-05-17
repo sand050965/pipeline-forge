@@ -1,0 +1,35 @@
+pipeline:
+  name: valid-custom-stages
+  description: Pipeline with custom stages
+
+stages:
+  - lint
+  - compile
+  - unit-test
+  - integration-test
+  - deploy
+
+lint-job:
+  - stage: lint
+  - image: node:18
+  - script: npm run lint
+
+compile-job:
+  - stage: compile
+  - image: gradle:jdk21
+  - script: gradle build
+
+unit-test-job:
+  - stage: unit-test
+  - image: gradle:jdk21
+  - script: gradle test
+
+integration-test-job:
+  - stage: integration-test
+  - image: gradle:jdk21
+  - script: gradle integrationTest
+
+deploy-job:
+  - stage: deploy
+  - image: alpine:latest
+  - script: echo "deploying"

@@ -1,0 +1,19 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  labels:
+    app: tempo
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: tempo
+  ports:
+    - name: http
+      port: 3200
+      targetPort: 3200
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+{{- end }}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-service
+  labels:
+    app: report-service
+spec:
+  type: ClusterIP
+  selector:
+    app: report-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082

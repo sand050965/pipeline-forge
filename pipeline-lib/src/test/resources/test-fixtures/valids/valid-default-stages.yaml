@@ -1,0 +1,18 @@
+pipeline:
+  name: valid-default-stages
+  description: Pipeline using default stages
+
+build-app:
+  - stage: build
+  - image: gradle:jdk21
+  - script: gradle build
+
+test-app:
+  - stage: test
+  - image: gradle:jdk21
+  - script: gradle test
+
+generate-docs:
+  - stage: docs
+  - image: gradle:jdk21
+  - script: gradle javadoc

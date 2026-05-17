@@ -1,0 +1,28 @@
+pipeline:
+  name: cross-stage-needs-pipeline
+  description: pipeline with cross-stage needs for testing
+
+stages:
+  - build
+  - test
+  - deploy
+
+compile:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "Compiling code"
+
+unit-tests:
+  - stage: test
+  - image: alpine:latest
+  - needs: [compile]
+  - script:
+      - echo "Running unit tests"
+
+deploy-app:
+  - stage: deploy
+  - image: alpine:latest
+  - needs: [unit-tests]
+  - script:
+      - echo "Deploying app"

@@ -1,0 +1,14 @@
+pipeline:
+  name: missing-stage
+
+stages:
+  - build
+
+valid-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+
+invalid-job:
+  - image: alpine:latest
+  - script: echo "testing"

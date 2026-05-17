@@ -1,0 +1,231 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Per-stage and per-job duration breakdown for a selected pipeline. Duration panels show averages across all runs in the time window (run_no is available for Tempo trace correlation but is not a Prometheus label).",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+
+  "templating": {
+    "list": [
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(cicd_pipeline_runs_total, pipeline)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Pipeline",
+        "multi": false,
+        "name": "pipeline",
+        "options": [],
+        "query": {
+          "query": "label_values(cicd_pipeline_runs_total, pipeline)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": false, "text": ".*", "value": ".*" },
+        "hide": 0,
+        "label": "Run Number (regex, .* = all)",
+        "name": "run_no",
+        "options": [],
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+
+  "panels": [
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average execution time per stage for the selected pipeline, computed over the selected time range. Sourced from cicd_stage_duration_seconds histogram. Note: run_no is not a Prometheus label; to view a specific run use the Trace Explorer.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "min": 0,
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "red", "value": 120 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(stage) (cicd_stage_duration_seconds_sum{pipeline=\"$pipeline\", run_no=~\"$run_no\"}) / sum by(stage) (cicd_stage_duration_seconds_count{pipeline=\"$pipeline\", run_no=~\"$run_no\"})",
+          "instant": true,
+          "legendFormat": "{{stage}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Per-Stage Duration (avg over time window)",
+      "type": "bargauge"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average execution time per job, labeled as stage/job, for the selected pipeline. Sourced from cicd_job_duration_seconds histogram. Only non-skipped jobs are recorded.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "min": 0,
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "red", "value": 120 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "id": 2,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(stage, job_name) (cicd_job_duration_seconds_sum{pipeline=\"$pipeline\", run_no=~\"$run_no\"}) / sum by(stage, job_name) (cicd_job_duration_seconds_count{pipeline=\"$pipeline\", run_no=~\"$run_no\"})",
+          "instant": true,
+          "legendFormat": "{{stage}} / {{job_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Per-Job Duration (avg over time window)",
+      "type": "bargauge"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Total success and failure counts per job for the selected pipeline. Green bars = successes, red bars = failures. Sourced from cicd_job_runs_total counter.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "failure" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 3,
+      "options": {
+        "displayMode": "basic",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(stage, job_name) (cicd_job_runs_total{pipeline=\"$pipeline\", run_no=~\"$run_no\", status=\"success\"})",
+          "instant": true,
+          "legendFormat": "✓ {{stage}} / {{job_name}}",
+          "refId": "success"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(stage, job_name) (cicd_job_runs_total{pipeline=\"$pipeline\", run_no=~\"$run_no\", status=\"failure\"})",
+          "instant": true,
+          "legendFormat": "✗ {{stage}} / {{job_name}}",
+          "refId": "failure"
+        }
+      ],
+      "title": "Job Status Breakdown (success / failure counts)",
+      "type": "bargauge"
+    }
+
+  ],
+
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["cicd", "stages", "jobs"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Stage and Job Breakdown",
+  "uid": "stage-job-breakdown",
+  "version": 1
+}

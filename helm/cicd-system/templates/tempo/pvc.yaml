@@ -1,0 +1,15 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo-pvc
+  labels:
+    app: tempo
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.tempo.storage }}
+{{- end }}

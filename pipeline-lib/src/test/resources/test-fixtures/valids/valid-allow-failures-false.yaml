@@ -1,0 +1,12 @@
+pipeline:
+  name: valid-failures-false
+  description: Pipeline with failures explicitly set to false
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+  - failures: false

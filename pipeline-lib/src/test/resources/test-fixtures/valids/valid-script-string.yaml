@@ -1,0 +1,11 @@
+pipeline:
+  name: test-script-string
+  description: Pipeline with script as single string
+
+stages:
+  - build
+
+compile:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "Single string script"

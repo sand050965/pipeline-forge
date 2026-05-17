@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: cicd-api-gateway
+
+server:
+  port: 8080
+
+services:
+  execution:
+    url: ${EXECUTION_SERVICE_URL:http://localhost:8081}
+  report:
+    url: ${REPORT_SERVICE_URL:http://localhost:8082}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/logs
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/metrics
+        base-time-unit: seconds
+

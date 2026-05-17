@@ -1,0 +1,9 @@
+pipeline:
+  name: missing-image
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - script: echo "building"

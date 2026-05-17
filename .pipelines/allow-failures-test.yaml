@@ -1,0 +1,19 @@
+pipeline:
+  name: allow-failures-test
+  description: Pipeline for testing allow-failures end-to-end
+
+stages:
+  - build
+
+always-failing-job:
+  - stage: build
+  - image: alpine:latest
+  - failures: true
+  - script:
+      - exit 1
+
+always-passing-job:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - echo "pass"

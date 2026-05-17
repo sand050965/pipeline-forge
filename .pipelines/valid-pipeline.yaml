@@ -1,0 +1,38 @@
+pipeline:
+  name: good-pipeline
+  description: A valid pipeline for testing
+
+stages:
+  - build
+  - test
+  - deploy
+
+compile:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "Compiling code"
+
+unit-tests:
+  - stage: test
+  - image: alpine:latest
+  - script:
+      - echo "Running unit tests"
+
+integration-tests:
+  - stage: test
+  - image: alpine:latest
+  - script:
+      - echo "Running integration tests"
+  - needs: [unit-tests]
+
+# Deploy stage
+package-app:
+  - stage: deploy
+  - image: alpine:latest
+  - script: echo "Packaging app"
+
+deploy-app:
+  - stage: deploy
+  - image: alpine:latest
+  - script: echo "Deploying app"
+  - needs: [package-app]

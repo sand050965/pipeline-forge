@@ -1,0 +1,11 @@
+pipeline:
+  name: always-failing-pipeline
+
+stages:
+  - build
+
+always-failing-job:
+  - stage: build
+  - image: alpine:latest
+  - script:
+      - exit 1

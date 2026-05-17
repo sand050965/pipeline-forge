@@ -1,0 +1,11 @@
+pipeline:
+  name: empty-needs
+
+stages:
+  - test
+
+test-job:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "testing"
+  - needs: [ ]

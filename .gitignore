@@ -1,0 +1,61 @@
+# =========================
+# Build artifacts
+# =========================
+build/
+.gradle/
+
+# Keep Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# =========================
+# IDE files
+# =========================
+
+## IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+## Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+
+## NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+## VS Code
+.vscode/
+
+# =========================
+# OS / editor noise
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs / temp
+# =========================
+*.log
+*.tmp
+
+# =========================
+# Docker volumes
+# =========================
+data/
+
+# Keys
+
+*.asc
+*.gpg

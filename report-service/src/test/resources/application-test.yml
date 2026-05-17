@@ -1,0 +1,16 @@
+spring:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
+logging:
+  level:
+    root: WARN
+    edu.northeastern.cs7580.cicd: DEBUG

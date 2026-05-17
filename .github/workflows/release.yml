@@ -1,0 +1,121 @@
+name: Release Services and CLI
+
+on:
+  push:
+    tags:
+      - 'cli-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - name: api-gateway
+            image: cs7580cteamcicd/api-gateway
+            dockerfile: api-gateway/Dockerfile
+          - name: execution-service
+            image: cs7580cteamcicd/execution-service
+            dockerfile: execution-service/Dockerfile
+          - name: report-service
+            image: cs7580cteamcicd/report-service
+            dockerfile: report-service/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract tag version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#service-v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push ${{ matrix.service.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ matrix.service.image }}:${{ steps.version.outputs.VERSION }}
+            ${{ matrix.service.image }}:latest
+
+  github-release:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build fat JAR
+        run: |
+          chmod +x gradlew
+          ./gradlew :cli:shadowJar
+
+      - name: Detect required JDK modules
+        run: |
+          MODULES=$(jdeps \
+            --ignore-missing-deps \
+            --print-module-deps \
+            --multi-release 21 \
+            cli/build/libs/cicd.jar)
+          echo "JLINK_MODULES=${MODULES},jdk.crypto.ec,jdk.zipfs" >> $GITHUB_ENV
+
+      - name: Build trimmed JRE with jlink
+        run: |
+          jlink \
+            --module-path "$JAVA_HOME/jmods" \
+            --add-modules "$JLINK_MODULES" \
+            --strip-debug \
+            --no-header-files \
+            --no-man-pages \
+            --compress=2 \
+            --output cli/build/jre
+
+      - name: Assemble archive
+        run: |
+          mkdir -p cli/build/cicd-linux-x64
+          cp cli/build/libs/cicd.jar  cli/build/cicd-linux-x64/cicd.jar
+          cp cli/scripts/cicd         cli/build/cicd-linux-x64/cicd
+          chmod +x                    cli/build/cicd-linux-x64/cicd
+          cp -r cli/build/jre         cli/build/cicd-linux-x64/jre
+          tar -czf cicd-linux-x64.tar.gz \
+            -C cli/build cicd-linux-x64
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Package Helm chart
+        run: helm package helm/cicd-system
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            cicd-linux-x64.tar.gz
+            docker-compose.yml
+            cicd-system-*.tgz
+          generate_release_notes: true

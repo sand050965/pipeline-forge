@@ -1,0 +1,11 @@
+pipeline:
+  name: test-pipeline
+  description: 456
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"

@@ -1,0 +1,418 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "CI/CD Pipeline Overview: run counts by status, duration trends, and recent run history with trace links",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Total number of pipeline runs that completed with status=success. Sourced from cicd_pipeline_runs_total counter.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "green", "mode": "fixed" },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum(cicd_pipeline_runs_total{status=\"success\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "Success",
+          "refId": "A"
+        }
+      ],
+      "title": "Successful Pipeline Runs",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Total number of pipeline runs that completed with status=failure. Sourced from cicd_pipeline_runs_total counter.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "red", "mode": "fixed" },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum(cicd_pipeline_runs_total{status=\"failure\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "Failed",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Pipeline Runs",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Per-pipeline run counts broken down by status. Each horizontal bar represents one (pipeline, status) combination. Sourced from cicd_pipeline_runs_total.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*success.*" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*failure.*" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 0 },
+      "id": 3,
+      "options": {
+        "displayMode": "basic",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(pipeline, status) (cicd_pipeline_runs_total)",
+          "instant": true,
+          "legendFormat": "{{pipeline}} ({{status}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Runs by Pipeline and Status",
+      "type": "bargauge"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average pipeline end-to-end duration over the selected time range, broken down by pipeline name. Computed as rate(sum) / rate(count) over the histogram timer cicd_pipeline_duration_seconds.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Duration",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 80 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "maxHeight": 600, "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "sum by(pipeline) (cicd_pipeline_duration_seconds_sum) / sum by(pipeline) (cicd_pipeline_duration_seconds_count)",
+          "legendFormat": "{{pipeline}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Pipeline Run Duration Over Time",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Recent pipeline-level log entries from execution-service. Each row corresponds to a log entry emitted with pipeline+run_no context but without a stage/job context (i.e., pipeline-level events). Click the Trace ID to open the full distributed trace in Tempo.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "trace_id" },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 280
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "internal": {
+                      "datasourceUid": "tempo",
+                      "datasourceName": "Tempo",
+                      "query": {
+                        "query": "${__value.raw}",
+                        "queryType": "traceId"
+                      }
+                    },
+                    "title": "Open Trace in Tempo",
+                    "url": ""
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Time" },
+            "properties": [
+              { "id": "custom.width", "value": 180 },
+              { "id": "displayName", "value": "Timestamp" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "pipeline" },
+            "properties": [
+              { "id": "custom.width", "value": 160 },
+              { "id": "displayName", "value": "Pipeline" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "run_no" },
+            "properties": [
+              { "id": "custom.width", "value": 80 },
+              { "id": "displayName", "value": "Run #" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "branch" },
+            "properties": [
+              { "id": "custom.width", "value": 160 },
+              { "id": "displayName", "value": "Branch" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "commit" },
+            "properties": [
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Commit" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "custom.width", "value": 90 },
+              { "id": "displayName", "value": "Status" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "duration_ms" },
+            "properties": [
+              { "id": "custom.width", "value": 110 },
+              { "id": "displayName", "value": "Duration (ms)" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Line" },
+            "properties": [
+              { "id": "custom.width", "value": 400 },
+              { "id": "displayName", "value": "Log Message" }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Time" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "editorMode": "code",
+          "expr": "{service_name=\"cicd-execution-service\"} | pipeline != \"\" | run_no != \"\" | status != \"\" | duration_ms != \"\"",
+          "queryType": "instant",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "title": "Recent Pipeline Runs",
+      "type": "table",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels",
+            "format": "json",
+            "replace": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "id": true,
+              "tsNs": true,
+              "labelTypes": true,
+              "detected_level": true,
+              "flags": true,
+              "observed_timestamp": true,
+              "scope_name": true,
+              "service_name": true,
+              "severity_number": true,
+              "severity_text": true,
+              "spanId": true,
+              "span_id": true,
+              "telemetry_sdk_language": true,
+              "telemetry_sdk_name": true,
+              "telemetry_sdk_version": true,
+              "traceId": true
+            },
+            "indexByName": {
+              "Time": 0,
+              "pipeline": 1,
+              "run_no": 2,
+              "branch": 3,
+              "commit": 4,
+              "status": 5,
+              "duration_ms": 6,
+              "trace_id": 7,
+              "Line": 8
+            },
+            "renameByName": {}
+          }
+        }
+      ]
+    }
+
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["cicd", "pipelines", "overview"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Pipeline Overview",
+  "uid": "pipeline-overview",
+  "version": 1
+}

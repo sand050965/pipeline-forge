@@ -1,0 +1,27 @@
+pipeline:
+  name: test-multiple-errors
+  description: Pipeline with multiple validation errors
+
+stages:
+  - build
+  - test
+
+job1:
+  - image: alpine
+  # Missing stage field
+  - script: echo "test"
+
+job2:
+  - stage: build
+  # Missing image field
+  - script: echo "test"
+
+job3:
+  - stage: build
+  - image: alpine
+  # Missing script field
+
+job4:
+  - stage: nonexistent
+  - image: alpine
+  - script: echo "test"

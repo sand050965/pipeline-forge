@@ -1,0 +1,11 @@
+pipeline:
+  name: undefined-job-needs
+
+stages:
+  - test
+
+test-job1:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "testing"
+  - needs: [ test-job2 ]

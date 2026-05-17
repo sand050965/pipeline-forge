@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cicd-system
+description: Helm chart for the CS7580 CI/CD platform
+type: application
+version: 0.1.0
+appVersion: "latest"

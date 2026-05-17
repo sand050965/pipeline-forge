@@ -1,0 +1,13 @@
+spring:
+  # Disable RabbitMQ listener auto-startup
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+

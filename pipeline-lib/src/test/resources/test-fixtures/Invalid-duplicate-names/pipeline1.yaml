@@ -1,0 +1,11 @@
+pipeline:
+  name: default
+  description: First pipeline with name default
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"

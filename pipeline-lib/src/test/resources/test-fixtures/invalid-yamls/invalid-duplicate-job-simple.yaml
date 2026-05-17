@@ -1,0 +1,22 @@
+pipeline:
+  name: duplicate-job-simple
+  description: Pipeline with duplicate job names
+
+stages:
+  - build
+  - test
+
+compile:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "First compile"
+
+test-job:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "Testing"
+
+compile:
+  - stage: build
+  - image: maven:latest
+  - script: echo "Duplicate compile"

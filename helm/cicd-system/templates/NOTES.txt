@@ -1,0 +1,9 @@
+1. Get the API Gateway address:
+   kubectl get svc api-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+   On minikube run: minikube service api-gateway --url
+
+2. Wait for all pods to be ready:
+   kubectl get pods -w
+
+3. Point your CLI at the gateway:
+   export CICD_GATEWAY_BASE_URL=<address from step 1>

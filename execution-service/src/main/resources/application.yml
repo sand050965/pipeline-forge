@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: cicd-execution-service
+
+  # PostgreSQL Database Configuration
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:cicd}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:cicd}
+    driver-class-name: org.postgresql.Driver
+
+  # R2DBC
+  r2dbc:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:cicd}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:cicd}
+
+  # Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    out-of-order: false
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    connection-timeout: 10000
+    listener:
+      simple:
+        acknowledge-mode: auto
+        concurrency: 5
+        max-concurrency: 10
+        prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-interval: 10000
+          multiplier: 2
+          max-retries: 3
+
+  # DevTools Configuration (optional, for development)
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+      include-stacktrace: on_param
+      include-exception: false
+
+# Server Configuration
+server:
+  port: 8081
+  shutdown: graceful
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    rabbit:
+      enabled: true
+    db:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/logs
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/metrics
+        base-time-unit: seconds
+

@@ -1,0 +1,219 @@
+import com.github.spotbugs.snom.SpotBugsTask
+
+plugins {
+    id 'java-library'
+    id 'com.vanniktech.maven.publish' version '0.30.0'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'com.github.spotbugs' version '6.4.8'
+}
+
+group = 'io.github.northeastern-cs7580-team-c'
+version = '1.2.0'
+description = 'CI/CD Pipeline Validation and Execution Planning Library'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    modularity.inferModulePath = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Core dependencies
+    implementation 'org.yaml:snakeyaml:2.2'
+
+    // Lombok for @Data, @Builder
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Logging (API only - consumers provide implementation)
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+
+    // Testing
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events = ["skipped", "failed"]
+        exceptionFormat = "full"
+    }
+}
+
+javadoc {
+    options {
+        tags = [
+                'apiNote:a:API Note:',
+                'implSpec:a:Implementation Requirements:',
+                'implNote:a:Implementation Note:'
+        ]
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        addStringOption('Xdoclint:-missing', '-quiet')
+    }
+}
+
+// Checkstyle configuration
+checkstyle {
+    toolVersion = '13.0.0'
+    configFile = rootProject.file('config/checkstyle/google_checks.xml')
+    ignoreFailures = false
+}
+
+tasks.withType(Checkstyle).configureEach {
+    group = 'verification'
+}
+
+// SpotBugs configuration
+spotbugs {
+    ignoreFailures = false
+    toolVersion = '4.9.8'
+    excludeFilter = file('config/spotbugs/excludeFilter.xml')  // suppress warning for DTO classes
+}
+
+tasks.withType(SpotBugsTask).configureEach {
+    group = 'verification'
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+            outputLocation = layout.buildDirectory.file('reports/spotbugs/main.html')
+        }
+        xml {
+            required = false
+        }
+    }
+}
+
+spotbugsTest {
+    reports {
+        html {
+            required = true
+            outputLocation = layout.buildDirectory.file('reports/spotbugs/test.html')
+        }
+        xml {
+            required = false
+        }
+    }
+}
+
+tasks.named('spotbugsTest', SpotBugsTask).configure {
+    auxClassPaths.setFrom(sourceSets.test.compileClasspath)
+}
+
+tasks.named('spotbugsMain', SpotBugsTask).configure {
+    auxClassPaths.setFrom(sourceSets.main.compileClasspath)
+}
+
+// JaCoCo configuration
+jacocoTestReport {
+    dependsOn test
+
+    executionData.setFrom(fileTree(layout.buildDirectory).include('jacoco/*.exec'))
+    classDirectories.setFrom(files(sourceSets.main.output))
+    sourceDirectories.setFrom(files(sourceSets.main.allSource.srcDirs))
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false)
+    }
+}
+
+tasks.named('jacocoTestReport') {
+    group = 'verification'
+    dependsOn tasks.named('test')
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
+}
+
+tasks.register('verifyModule') {
+    group = 'verification'
+    description = 'Verifies the module-info.java structure'
+
+    doLast {
+        def jarFile = tasks.jar.archiveFile.get().asFile
+        if (jarFile.exists()) {
+            exec {
+                commandLine 'jar', '--describe-module', '--file', jarFile.absolutePath
+            }
+        } else {
+            println "JAR file not found. Run 'gradle build' first."
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    // module-info.java must be compiled
+    options.compilerArgs += ['--enable-preview']
+}
+
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates('io.github.northeastern-cs7580-team-c', 'pipeline-lib', '1.2.0')
+
+    pom {
+        name = 'CI/CD Pipeline Library'
+        description = 'Shared validation and execution planning library for CI/CD pipeline configurations'
+        url = 'https://github.com/CS7580-SEA-SP26/c-team'
+
+        licenses {
+            license {
+                name = 'MIT License'
+                url = 'https://opensource.org/licenses/MIT'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'cs7580-team-c'
+                name = 'CS7580 Team C'
+                email = 'zheng.lel@northeastern.edu'
+            }
+        }
+
+        scm {
+            connection = 'scm:git:git://github.com/CS7580-SEA-SP26/c-team.git'
+            developerConnection = 'scm:git:ssh://github.com/CS7580-SEA-SP26/c-team.git'
+            url = 'https://github.com/CS7580-SEA-SP26/c-team'
+        }
+    }
+}

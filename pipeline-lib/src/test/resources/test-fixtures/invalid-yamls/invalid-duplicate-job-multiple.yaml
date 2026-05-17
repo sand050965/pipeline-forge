@@ -1,0 +1,26 @@
+pipeline:
+  name: duplicate-job-multiple
+  description: Pipeline with multiple duplicate job names
+
+stages:
+  - build
+
+job1:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "First job1"
+
+job2:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "First job2"
+
+job1:
+  - stage: build
+  - image: maven:latest
+  - script: echo "Duplicate job1"
+
+job2:
+  - stage: build
+  - image: gradle:latest
+  - script: echo "Duplicate job2"

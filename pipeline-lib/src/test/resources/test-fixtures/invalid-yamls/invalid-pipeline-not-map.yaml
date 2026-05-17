@@ -1,0 +1,9 @@
+pipeline: just-a-string
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"

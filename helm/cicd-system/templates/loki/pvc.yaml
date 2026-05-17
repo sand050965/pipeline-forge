@@ -1,0 +1,15 @@
+{{- if .Values.loki.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-pvc
+  labels:
+    app: loki
+    {{- include "cicd-system.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.loki.storage }}
+{{- end }}

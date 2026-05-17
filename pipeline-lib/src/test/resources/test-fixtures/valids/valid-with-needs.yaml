@@ -1,0 +1,23 @@
+pipeline:
+  name: valid-with-needs
+  description: Pipeline with job dependencies
+
+stages:
+  - test
+
+test-unit:
+  - stage: test
+  - image: gradle:jdk21
+  - script: gradle test
+
+test-integration:
+  - stage: test
+  - image: gradle:jdk21
+  - script: gradle integrationTest
+  - needs: [ test-unit ]
+
+test-e2e:
+  - stage: test
+  - image: gradle:jdk21
+  - script: gradle e2eTest
+  - needs: [ test-unit, test-integration ]

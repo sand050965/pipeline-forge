@@ -1,0 +1,21 @@
+pipeline:
+  name: parallel-independent
+  description: Three independent jobs with no needs
+
+stages:
+  - build
+
+job-a:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-a"
+
+job-b:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-b"
+
+job-c:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-c"

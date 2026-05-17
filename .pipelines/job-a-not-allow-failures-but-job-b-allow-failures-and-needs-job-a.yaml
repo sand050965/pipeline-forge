@@ -1,0 +1,24 @@
+pipeline:
+  name: usecase2
+
+stages:
+  - build
+  - test
+
+job-a:
+  - stage: build
+  - image: nothing
+  - failures: true
+  - script:
+      - echo "Job A"
+
+job-b:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "Job B"
+  - needs: [job-a]
+
+job-c:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "Job C"

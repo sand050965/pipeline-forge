@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cicd-config
+  labels:
+    {{- include "cicd-system.labels" . | nindent 4 }}
+data:
+  EXECUTION_SERVICE_URL: "http://execution-service:8081"
+  REPORT_SERVICE_URL: "http://report-service:8082"
+  DB_HOST: {{ include "cicd-system.dbHost" . | quote }}
+  DB_PORT: {{ .Values.postgres.port | quote }}
+  DB_NAME: {{ .Values.postgres.database | quote }}
+  RABBITMQ_HOST: {{ include "cicd-system.rabbitmqHost" . | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"

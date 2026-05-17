@@ -1,0 +1,10 @@
+pipeline:
+  name: demo
+
+stages:
+  - build
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "hello"

@@ -1,0 +1,29 @@
+pipeline:
+  name: parallel-diamond
+  description: Diamond dependency pattern within one stage
+
+stages:
+  - build
+
+job-a:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-a"
+
+job-b:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-b"
+  - needs: [job-a]
+
+job-c:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-c"
+  - needs: [job-a]
+
+job-d:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "job-d"
+  - needs: [job-b, job-c]

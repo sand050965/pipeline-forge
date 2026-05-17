@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: cicd-api-gateway-test
+
+server:
+  port: 0  # Random port for tests
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
+logging:
+  level:
+    edu.northeastern.cs7580: DEBUG

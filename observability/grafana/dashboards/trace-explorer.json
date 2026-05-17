@@ -1,0 +1,159 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Trace explorer for CI/CD pipeline runs. Search by Run Number to find matching traces via TraceQL. Click 'Open Full Trace in Tempo' on any Trace ID to inspect the full pipeline → stage → job span hierarchy in Tempo. Trace IDs are also available as clickable links in the Pipeline Overview dashboard.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": ["cicd", "overview"],
+      "title": "Pipeline Overview",
+      "tooltip": "Go to Pipeline Overview dashboard",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": ".*",
+          "value": ".*"
+        },
+        "hide": 0,
+        "label": "Run Number (regex, .* = all)",
+        "name": "run_no",
+        "options": [],
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+
+  "panels": [
+
+    {
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "description": "Searches Tempo for traces from execution-service where the root span's run.number attribute matches the Run Number variable. Results show one row per trace. Click 'Open Full Trace in Tempo' on any Trace ID to open the full pipeline → stage → job span hierarchy in Tempo Explore.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "traceID" },
+            "properties": [
+              { "id": "custom.width", "value": 320 },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "internal": {
+                      "datasourceUid": "tempo",
+                      "datasourceName": "Tempo",
+                      "query": {
+                        "query": "${__data.fields.traceID}",
+                        "queryType": "traceId"
+                      }
+                    },
+                    "title": "Open Full Trace in Tempo",
+                    "url": ""
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Duration" },
+            "properties": [
+              { "id": "unit", "value": "ns" },
+              { "id": "custom.width", "value": 120 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Start time" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{resource.service.name = \"cicd-execution-service\" && span.run.number =~ \"$run_no\"}",
+          "limit": 20,
+          "tableType": "traces",
+          "refId": "A"
+        }
+      ],
+      "title": "Traces matching Run Number (TraceQL search)",
+      "type": "table"
+    },
+
+    {
+      "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+      "description": "",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 10 },
+      "id": 2,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "## How to view the full span hierarchy\n\n1. Use the search table above to find traces matching a Run Number.\n2. Click **Open Full Trace in Tempo** on any row to open the complete **pipeline → stage → job** span waterfall in Tempo Explore.\n\nTrace data is fully available in Tempo — this link provides direct access to the distributed trace visualization.",
+        "mode": "markdown"
+      },
+      "targets": [],
+      "title": "Span Hierarchy — pipeline → stage → job",
+      "type": "text"
+    }
+
+  ],
+
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["cicd", "traces"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Trace Explorer",
+  "uid": "trace-explorer",
+  "version": 1
+}

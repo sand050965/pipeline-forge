@@ -1,0 +1,11 @@
+def dockerBuild = System.getenv('DOCKER_BUILD')
+
+if (dockerBuild == null) {
+    include 'cli'
+    include 'api-gateway'
+    include 'execution-service'
+    include 'report-service'
+} else {
+    include dockerBuild
+    include 'pipeline-lib'
+}

@@ -1,0 +1,144 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Unified log viewer for CI/CD service logs and pipeline job container logs. Use the dropdowns to filter by pipeline, stage, and job. Use the Run Number field (regex) to filter by a specific run; leave as .* to see all runs.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(cicd_pipeline_runs_total, pipeline)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Pipeline",
+        "multi": false,
+        "name": "pipeline",
+        "options": [],
+        "query": {
+          "query": "label_values(cicd_pipeline_runs_total, pipeline)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": ".*",
+          "value": ".*"
+        },
+        "hide": 0,
+        "label": "Run Number (regex, .* = all)",
+        "name": "run_no",
+        "options": [],
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "allValue": ".*",
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(cicd_stage_duration_seconds{pipeline=\"$pipeline\"}, stage)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Stage",
+        "multi": false,
+        "name": "stage",
+        "options": [],
+        "query": {
+          "query": "label_values(cicd_stage_duration_seconds{pipeline=\"$pipeline\"}, stage)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(cicd_job_duration_seconds{pipeline=\"$pipeline\", stage=\"$stage\"}, job_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": false,
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(cicd_job_duration_seconds{pipeline=\"$pipeline\", stage=\"$stage\"}, job_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+
+  "panels": [
+
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Unified log stream from execution-service filtered by the selected variables. Logs with source=container are stdout/stderr captured from pipeline job containers. Logs without a source field (or where source is absent) are emitted by the CI/CD service code itself. Click any log line to expand full details including all structured metadata.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 24, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "editorMode": "code",
+          "expr": "{service_name=\"cicd-execution-service\"} | pipeline != \"\" | run_no != \"\" | pipeline =~ \"$pipeline\" | run_no =~ \"$run_no\" | stage =~ \"$stage\" | job =~ \"$job\"",
+          "queryType": "range",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "title": "Pipeline Logs (service + container)",
+      "type": "logs"
+    }
+
+  ],
+
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["cicd", "logs"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Logs Viewer",
+  "uid": "logs-viewer",
+  "version": 1
+}

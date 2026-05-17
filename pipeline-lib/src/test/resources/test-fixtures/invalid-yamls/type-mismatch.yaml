@@ -1,0 +1,4 @@
+pipeline: "not a map"
+
+stages:
+  - build

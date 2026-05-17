@@ -1,0 +1,17 @@
+pipeline:
+  name: needs-different-stage
+
+stages:
+  - build
+  - test
+
+build-job:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+
+test-job:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "testing"
+  - needs: [ build-job ]

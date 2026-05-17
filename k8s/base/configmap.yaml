@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cicd-config
+data:
+  EXECUTION_SERVICE_URL: "http://execution-service:8081"
+  REPORT_SERVICE_URL: "http://report-service:8082"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "cicd"
+  RABBITMQ_HOST: "rabbitmq"

@@ -1,0 +1,124 @@
+image:
+  repository: cs7580cteamcicd
+  tag: latest
+  pullPolicy: Always
+
+postgres:
+  enabled: true
+  host: ""
+  port: 5432
+  database: cicd
+  storage: 1Gi
+  credentials:
+    user: cG9zdGdyZXM=      # base64: postgres
+    password: Y2ljZA==       # base64: cicd
+
+rabbitmq:
+  enabled: true
+  host: ""
+  port: 5672
+  storage: 1Gi
+  credentials:
+    user: Z3Vlc3Q=           # base64: guest
+    password: Z3Vlc3Q=       # base64: guest
+
+apiGateway:
+  service:
+    type: LoadBalancer
+    port: 8080
+
+otelCollector:
+  enabled: true
+
+prometheus:
+  enabled: true
+  storage: 5Gi
+
+loki:
+  enabled: true
+  storage: 5Gi
+
+tempo:
+  enabled: true
+  storage: 5Gi
+
+grafana:
+  enabled: true
+  storage: 1Gi
+  service:
+    type: LoadBalancer
+    port: 3000
+
+resources:
+  stateless:
+    apiGateway:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    executionService:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    reportService:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    otelCollector:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    grafana:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  stateful:
+    postgres:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    rabbitmq:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    prometheus:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    loki:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    tempo:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"

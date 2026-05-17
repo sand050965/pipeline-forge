@@ -1,0 +1,18 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    app: grafana
+    {{- include "cicd-system.labels" . | nindent 4 }}
+data:
+  pipeline-overview.json: |
+{{ .Files.Get "dashboards/pipeline-overview.json" | indent 4 }}
+  stage-job-breakdown.json: |
+{{ .Files.Get "dashboards/stage-job-breakdown.json" | indent 4 }}
+  logs-viewer.json: |
+{{ .Files.Get "dashboards/logs-viewer.json" | indent 4 }}
+  trace-explorer.json: |
+{{ .Files.Get "dashboards/trace-explorer.json" | indent 4 }}
+{{- end }}

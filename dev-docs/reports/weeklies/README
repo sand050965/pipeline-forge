@@ -1,0 +1,43 @@
+# README 
+
+Each week you **must** 
+
+1. Copy the template file `weeklies-template.md` found in this folder. 
+1. The name of your weekly is the week number, e.g., `week1.md`
+1. The new weekly report file **must** be in this folder (the one this README is in)
+
+
+Inside your  weekly report you **must** 
+
+1. Have a section on with the work **completed** this past week. 
+    1. The section is a table (see the template)
+    1. Each row contains 
+        1. the issue completed. The issue **must** be linked to the GitHub issue 
+        1. the GitHub login of the person **assigned** to the issue 
+        1. The estimate for the amount of work that the team assigned to this issue
+1. Have a section on with the work that **carries over** (did not complete) this past week. 
+    1. The section is a table (see the template)
+    1. Each row contains 
+        1. the issue completed. The issue **must** be linked to the GitHub issue 
+        1. the GitHub login of the person **assigned** to the issue 
+        1. The estimate for the amount of work that the team assigned to this issue
+1. Have a section on **what worked** this week
+    1. This is a list of things that the team did this past week for which the team saw a positive effects, e.g., "PRs **must** be reviews within 24 hours", "Each person works on their own branch", "Tasks are created and assigned on **the first* *day of the sprint** 
+1. Have a section on **what did not work** this week
+    1. This is a list of things that the team did this past week for which the team saw a negative effect, e.g., "Large PRs are difficult to review and take time", "CI/CD actions **must** be green for `main` and for a PR**, **No updates from team members during the week made us rush at the end" 
+1. Have a section on **design updates** 
+    1. This is a list of updates to changes/updates to the over system's design that the team decided and/or acted on this week
+
+Also keep in mind that
+
+1. A Task is **done** if all code and artifacts (docs, design etc.) are **on `main`**. 
+1. Each PR **must** be linked to an issue. 
+1. Each **completed** issue **must** be linked to the issue it addresses. 
+1. PRs should be kept focused, small and **must** be approved by a team member **other** than the PR author 
+1. A person assigned on an issue means **they are responsible** for delivering that issue. They may write the code alone, or in collaboration or delegate, regardless, any questions about the issue, it's status, correctness etc. the assigned person is responsible for having/finding answers.
+1. All issues that are part of a sprint **must** have 1 **and only 1** person assigned to the issue. 
+1. All issues have a **clear** title. 
+1. All issues have a **clear** description explaining 
+    1. Why we need the issue 
+    1. What will the issue provide when it is done 
+

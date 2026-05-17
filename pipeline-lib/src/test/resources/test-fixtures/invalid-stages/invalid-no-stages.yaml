@@ -1,0 +1,4 @@
+pipeline:
+  name: no-stages
+
+stages:

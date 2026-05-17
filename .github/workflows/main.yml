@@ -1,0 +1,118 @@
+name: MAIN CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Compile
+        run: ./gradlew clean compile
+
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Test & Coverage
+        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/build/test-results/test/*.xml'
+          retention-days: 7
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: '**/build/reports/jacoco/'
+          retention-days: 7
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Checkstyle
+        run: ./gradlew checkstyle
+      - name: SpotBugs
+        run: ./gradlew spotbugs
+      - name: Upload Checkstyle reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-reports
+          path: '**/build/reports/checkstyle/'
+          retention-days: 7
+      - name: Upload SpotBugs reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-reports
+          path: '**/build/reports/spotbugs/'
+          retention-days: 7
+
+  generate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Javadoc
+        run: ./gradlew javadoc
+      - name: Upload Javadoc
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          path: '**/build/docs/javadoc/'
+          retention-days: 7
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [ run-tests, code-quality ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Build JAR
+        run: ./gradlew bootJar
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jars
+          path: '**/build/libs/*.jar'
+          retention-days: 7

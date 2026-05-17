@@ -1,0 +1,12 @@
+pipeline:
+  name: hello-world
+  description: Name is an integer
+
+stages:
+  - build
+
+123:
+  - stage: build
+  - image: alpine:latest
+  - script: echo "building"
+

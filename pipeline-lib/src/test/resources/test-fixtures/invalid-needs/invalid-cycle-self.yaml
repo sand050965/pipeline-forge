@@ -1,0 +1,12 @@
+pipeline:
+  name: cycle-self
+  description: Self dependency
+
+stages:
+  - test
+
+job1:
+  - stage: test
+  - image: alpine:latest
+  - script: echo "job1"
+  - needs: [ job1 ]
